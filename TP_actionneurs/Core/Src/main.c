@@ -226,6 +226,7 @@ int main(void)
 			}
 			else if(strcmp(argv[0],"start")==0)
 			{
+				void powerUpSequence (void);
 				HAL_UART_Transmit(&huart2, powerOn, sizeof(powerOn), HAL_MAX_DELAY);
 			}
 			else if(strcmp(argv[0],"stop")==0)
@@ -295,6 +296,13 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef * huart){
 	uartRxReceived = 1;
 	HAL_UART_Receive_IT(&huart2, uartRxBuffer, UART_RX_BUFFER_SIZE);
 }
+
+void powerUpSequence (void){
+	  HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_SET);
+	  HAL_Delay(1);
+	  HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_RESET);
+}
+
 /* USER CODE END 4 */
 
 /**
