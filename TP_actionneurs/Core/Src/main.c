@@ -46,6 +46,8 @@
 #define ASCII_CR 0x0D
 // DEL = delete
 #define ASCII_DEL 0x7F
+
+#define SPEED_MAX 512 // Temporary value
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -89,6 +91,8 @@ const uint8_t powerOff[]=
 		"\r\n| Motor OFF |"
 		"\r\n";
 
+const char * separators = " =";
+
 uint32_t uartRxReceived;
 uint8_t uartRxBuffer[UART_RX_BUFFER_SIZE];
 uint8_t uartTxBuffer[UART_TX_BUFFER_SIZE];
@@ -119,6 +123,7 @@ int main(void)
 	int		 	argc = 0;
 	char*		token;
 	int 		newCmdReady = 0;
+	uint16_t	speed = 0;
 
 	/*
 	const uint8_t help[] : contenant le message d'aide, la liste des fonctions
@@ -178,7 +183,7 @@ int main(void)
 				HAL_UART_Transmit(&huart2, newLine, sizeof(newLine), HAL_MAX_DELAY);
 				cmd[idxCmd] = '\0';
 				argc = 0;
-				token = strtok(cmd, " ");
+				token = strtok(cmd, separators);
 				while(token!=NULL){
 					argv[argc++] = token;
 					token = strtok(NULL, " ");
@@ -232,6 +237,17 @@ int main(void)
 			else if(strcmp(argv[0],"stop")==0)
 			{
 				HAL_UART_Transmit(&huart2, powerOff, sizeof(powerOff), HAL_MAX_DELAY);
+			}
+			if(strcmp(argv[0],"speed")==0){
+				speed = atoi(argv[1]);
+				if (speed > SPEED_MAX)	speed = SPEED_MAX;
+				__HAL_TIM_SET_COMPARE(
+						&htim1,
+						TIM_CHANNEL_ALL,
+						__HAL_TIM_GET_AUTORELOAD(&htim1)*(speed/SPEED_MAX)
+						);
+				sprintf(uartTxBuffer,"Speed set to : %d | S=\r\n",speed);
+				HAL_UART_Transmit(&huart2, uartTxBuffer, 32, HAL_MAX_DELAY);
 			}
 			else{
 				HAL_UART_Transmit(&huart2, cmdNotFound, sizeof(cmdNotFound), HAL_MAX_DELAY);
@@ -298,9 +314,9 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef * huart){
 }
 
 void powerUpSequence (void){
-	  HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_SET);
-	  HAL_Delay(1);
-	  HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_SET);
+	HAL_Delay(1);
+	HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_RESET);
 }
 
 /* USER CODE END 4 */
