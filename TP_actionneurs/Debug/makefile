@@ -60,8 +60,8 @@ all: main-build
 main-build: TP_actionneurs.elf secondary-outputs
 
 # Tool invocations
-TP_actionneurs.elf TP_actionneurs.map: $(OBJS) $(USER_OBJS) D:\Users\ricar\Downloads\Manter\ENSEA\S9\ ACTIONNEUR\ ET\ AUTOMATIQUE\ APPLIQUEE\TP\TP_actionneurs\TP_actionneurs\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "TP_actionneurs.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Users\ricar\Downloads\Manter\ENSEA\S9 ACTIONNEUR ET AUTOMATIQUE APPLIQUEE\TP\TP_actionneurs\TP_actionneurs\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TP_actionneurs.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+TP_actionneurs.elf TP_actionneurs.map: $(OBJS) $(USER_OBJS) C:\Users\ABCR\OneDrive\ -\ Georgia\ Institute\ of\ Technology\ENSEA\ESE\Actionneur\TP_actionneurs\TP_actionneurs\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "TP_actionneurs.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\ABCR\OneDrive - Georgia Institute of Technology\ENSEA\ESE\Actionneur\TP_actionneurs\TP_actionneurs\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TP_actionneurs.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
