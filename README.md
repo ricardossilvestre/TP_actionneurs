@@ -1,3 +1,3 @@
-Alvaro Rodriguez Sanchez /r/n
-Ricardo Silvestre
+Alvaro Rodriguez Sanchez  
+Ricardo Silvestre  
 ESE TP1
