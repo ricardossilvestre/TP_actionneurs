@@ -62,6 +62,8 @@ void powerUpSequence (void);
 #define BUTTON_EXTI_IRQn EXTI15_10_IRQn
 #define ISO_RESET_Pin GPIO_PIN_3
 #define ISO_RESET_GPIO_Port GPIOC
+#define ADC_CURRENT_Pin GPIO_PIN_0
+#define ADC_CURRENT_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_5
 #define LED_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */

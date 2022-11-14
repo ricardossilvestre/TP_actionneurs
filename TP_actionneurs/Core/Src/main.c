@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -48,6 +49,9 @@
 #define ASCII_DEL 0x7F
 
 #define SPEED_MAX 512 // Temporary value
+
+#define TIMCLOCK   170000000
+#define PRESCALAR  1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -97,12 +101,20 @@ uint32_t uartRxReceived;
 uint8_t uartRxBuffer[UART_RX_BUFFER_SIZE];
 uint8_t uartTxBuffer[UART_TX_BUFFER_SIZE];
 
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+int Is_First_Captured = 0;
+
+/* Measure Frequency */
+float frequency = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -126,6 +138,8 @@ int main(void)
 	int		speed = 0;
 	uint16_t  CCR1 = 5312;
 	uint16_t  CCR2 = 5312;
+
+	uint16_t AD_RES = 0;
 
 	/*
 	const uint8_t help[] : contenant le message d'aide, la liste des fonctions
@@ -156,11 +170,16 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM1_Init();
   MX_USART2_UART_Init();
+  MX_ADC1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+
+	HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_IC_Start(&htim2, TIM_CHANNEL_2);
 
 	memset(argv,NULL,MAX_ARGS*sizeof(char*));
 	memset(cmd,NULL,CMD_BUFFER_SIZE*sizeof(char));
@@ -221,7 +240,12 @@ int main(void)
 			}
 			else if(strcmp(argv[0],"get")==0)
 			{
-				HAL_UART_Transmit(&huart2, cmdNotFound, sizeof(cmdNotFound), HAL_MAX_DELAY);
+				// Read The ADC Conversion Result & Map It To PWM DutyCycle
+				AD_RES = ((3300*HAL_ADC_GetValue(&hadc1)/4096)-2500)*12;
+				//AD_RES = ((HAL_ADC_GetValue(&hadc1)*3300)/4096-2500)*12;
+				sprintf(uartTxBuffer,"ADC = %d | Freq = %d \r\n",AD_RES,(int) frequency);
+				HAL_UART_Transmit(&huart2, uartTxBuffer, sizeof(uartTxBuffer), HAL_MAX_DELAY);
+
 			}
 			else if(strcmp(argv[0],"help")==0)
 			{
@@ -256,6 +280,11 @@ int main(void)
 			HAL_UART_Transmit(&huart2, prompt, sizeof(prompt), HAL_MAX_DELAY);
 			newCmdReady = 0;
 		}
+
+		// Start ADC Conversion
+		HAL_ADC_Start(&hadc1);
+		// Poll ADC1 Perihperal & TimeOut = 1mSec
+		HAL_ADC_PollForConversion(&hadc1, 100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -320,6 +349,14 @@ void powerUpSequence (void){
 	HAL_GPIO_WritePin(ISO_RESET_GPIO_Port, ISO_RESET_Pin, GPIO_PIN_RESET);
 }
 
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM2) {
+		uint32_t cl = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+		uint32_t ch = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+
+		frequency = (float) TIMCLOCK / (cl + 1);
+	}
+}
 /* USER CODE END 4 */
 
 /**
